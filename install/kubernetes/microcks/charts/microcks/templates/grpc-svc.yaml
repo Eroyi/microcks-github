@@ -1,0 +1,24 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: "{{ .Values.appName }}-grpc"
+  labels:
+    app: "{{ .Values.appName }}"
+    container: spring
+    group: microcks
+    {{- include "microcks-common-labels" . | nindent 4 }}
+    {{- include "grpc-service-labels" . | nindent 4 }}
+  annotations:
+    {{- include "grpc-service-annotations" . | nindent 4 }}
+spec:
+  ports:
+    - protocol: TCP
+      port: {{ .Values.grpc.service.port }}
+      targetPort: {{ .Values.grpc.service.targetPort }}
+      name: spring-grpc
+  type: {{ .Values.grpc.service.type | default "ClusterIP" | quote }}
+  sessionAffinity: None
+  selector:
+    app: "{{ .Values.appName }}"
+    container: spring
+    group: microcks

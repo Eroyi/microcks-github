@@ -1,0 +1,12 @@
+{{- if and (.Values.config.grpcEnableTLS) (not .Values.grpc.ingresses.grpcSecretRef) }}
+kind: Secret
+apiVersion: v1
+metadata:
+  name: "{{ .Values.appName }}-microcks-grpc-secret"
+  labels:
+    app: "{{ .Values.appName }}"
+    group: microcks
+type: kubernetes.io/tls
+data:
+{{ ( include "microcks-grpc.gen-certs" . ) | indent 2 }}
+{{- end }}

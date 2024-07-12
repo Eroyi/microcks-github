@@ -1,0 +1,34 @@
+{{- if .Values.microcks.ingresses.enabled -}}
+kind: Ingress
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: "{{ .Values.appName }}"
+  labels:
+    app: "{{ .Values.appName }}"
+    group: microcks
+    {{- include "microcks-common-labels" . | nindent 4 }}
+    {{- include "microcks-ingresses-labels" . | nindent 4 }}
+  annotations:
+    {{- include "microcks-ingresses-annotations" . | nindent 4 }}
+    ingress.kubernetes.io/rewrite-target: /
+    {{- end }}
+spec:
+  {{- if .Values.microcks.ingresses.ingressClassName }}
+  ingressClassName: {{ .Values.microcks.ingresses.ingressClassName | quote }}
+  {{- end }}
+  tls:
+  - hosts:
+    - "{{ .Values.config.url }}"
+    secretName: {{ .Values.microcks.ingresses.ingressSecretRef | default (print .Values.appName "-microcks-ingress-secret") }}
+  rules:
+  - host: "{{ .Values.config.url }}"
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: "{{ .Values.appName }}"
+            port:
+              number: {{ .Values.microcks.service.port }}
+{{- end -}}

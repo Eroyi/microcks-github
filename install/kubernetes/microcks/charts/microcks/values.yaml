@@ -1,0 +1,135 @@
+## Global variables
+storageClass: ""
+imagePullSecrets: []
+imageRegistry: ""
+appName: microcks
+ingresses: false
+
+## Microcks configuration
+microcks:
+  labels: {}
+  annotations: {}
+  image:
+    registry: "quay.io"
+    repository: "quay.io/microcks/microcks"
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  replicas: 1
+  resources:
+    requests:
+      memory: 512Mi
+      cpu: 200m
+    limits:
+      memory: 512Mi
+      cpu: 500m
+  logLevel: info
+  # Enabling by adding yaml extra application configurations
+  extraProperties:
+    #server:
+      #tomcat:
+        #remoteip:
+          #internal-proxies: 172.16.0.0/12
+  env:
+    - name: SERVICES_UPDATE_INTERVAL
+      value: 0 0 0/2 * * *
+    #- name: MAX_UPLOAD_FILE_SIZE
+    #  value: 5MB
+    #- name: CORS_REST_ALLOWED_ORIGINS
+    #  value: my-site.acme.com
+    #- name: CORS_REST_ALLOW_CREDENTIALS
+    #  value: 'true'
+
+  service:
+    Type: ClusterIP
+    labels: {}
+    annotations: {}
+    port: 8080
+    targetPort: 8080
+
+  ingresses:
+    enabled: false
+  # ingressSecretRef: my-secret-for-microcks-ingress
+  # ingressClassName: nginx
+    labels: {}
+    annotations: {}
+  #   cert-manager.io/issuer: my-cert-issuer
+  #   kubernetes.io/tls-acme: "true"
+
+  configmap:
+    labels: {}
+    annotations: {}
+
+grpc:
+  service:
+    type: ClusterIP
+    labels: {}
+    annotations: {}
+    port: 9090
+    targetPort: 9090
+
+  ingresses:
+    enabled: false
+  # grpcSecretRef: my-secret-for-microcks-grpc
+  # grpcIngressClassName: nginx
+    labels: {}
+    annotations:
+      myclass.ingress.kubernetes.io/backend-protocol: "GRPC"
+    # myclass.ingress.kubernetes.io/ssl-passthrough: "true"
+
+config:
+  # This SSL toggle only control the reDirect URL protocol in realms.config file.
+  ssl:
+    enabled: false
+  url: microcks.example.com
+  grpcEnableTLS: true
+  generateCert: true
+  # Enabling/disabling mock invocation stats.
+  mockInvocationStats: true
+
+  # Custom secret for Microcks
+  # It can be usec to deploy a keystore to add certificats to trust sso connection with keycloak.
+  # In this case: Use an existing secret with the provided keystore.
+  # Don't forget to add java options like that if your secret is a keystore:
+  # JAVA_OPTIONS: "-Djavax.net.ssl.trustStore=/deployments/config/custom/secret/KEYSTORE -Djavax.net.ssl.trustStorePassword=XXXXX"
+  #customSecretRef:
+  #  secret: microcks-keystore
+  #  key: cacerts
+
+  postman-runtime:
+    port: 8080
+
+realms:
+  labels: {}
+  annotations: {}
+  realmName: microcks
+  users:
+    - username: "users1"
+      password: "microcks123"
+      roles: ["user"]
+    - username: "manager"
+      password: "manager123"
+      roles: ["user", "manager"]
+    - username: "admin"
+      password: "admin123"
+      roles: ["user", "manager", "admin"]
+
+features:
+  repositoryFilter:
+    enabled: false
+    labelKey: app
+    labelLabel: Application
+    labelList: app,status
+  repositoryTenancy:
+    enabled: false
+    artifactImportAllowedRoles: admin,manager,manager-any
+  microcksHub:
+    enabled: true
+    allowedRoles: admin,manager,manager-any
+  aiCopilot:
+    enabled: false
+    implementation: openai
+    openai:
+      apiKey: sk-my-openai-api-token
+      timeout: 20
+      #model: gpt-3.5-turbo
+      #maxTokens: 2000

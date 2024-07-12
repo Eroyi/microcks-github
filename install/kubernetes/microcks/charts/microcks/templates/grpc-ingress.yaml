@@ -1,0 +1,35 @@
+{{- if .Values.grpc.ingresses.enabld -}}
+kind: Ingress
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: "{{ .Values.appName }}-grpc"
+  labels:
+    app: "{{ .Values.appName }}"
+    group: microcks
+    {{- include "microcks-common-labels" . | nindent 4 }}
+    {{- include "grpc-ingresses-labels" . | nindent 4 }}
+  annotations:
+    {{- include "grpc-ingresses-annotations" . | nindent 4 }}
+    ingress.kubernetes.io/rewrite-target: /
+    {{- if (.Values.microcks.config.grpcEnableTLS) }}
+    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    {{- end }}
+spec:
+  {{- if .Values.grpc.ingresses.grpcIngressClassName }}
+  ingressClassName: {{ .Values.grpc.ingresses.grpcIngressClassName | quote }}
+  {{- end }}
+  tls:
+  - hosts:
+     - {{ ( include "microcks-grpc.url" . ) }}
+  rules:
+  - host: {{ ( include "microcks-grpc.url" . ) }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: "{{ .Values.appName }}-grpc"
+            port:
+              number: {{ .Values.grpc.service.port }}
+{{- end }}

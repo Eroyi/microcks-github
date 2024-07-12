@@ -1,0 +1,19 @@
+{{- if .Values.keycloak.enabled }}
+## WIP: Need to work on support external Keycloak services, probably an init-containers.
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: "microcks-keycloak-config"
+  labels:
+    app: "{{ .Values.appName }}"
+    container: keycloak
+    group: microcks
+    {{- include "microcks-common-labels" . | nindent 4 }}
+    {{- include "microcks-realm-labels"  . | nindent 4 }}
+  annotations:
+    {{- include "microcks-realm-annotations" . | nindent 4 }}
+data:
+  microcks-realm.json: |-
+    {{- include "microcks-realm-json"  . | nindent 4 }}
+{{- end }}
